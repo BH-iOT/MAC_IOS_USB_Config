@@ -1,0 +1,153 @@
+
+
+1. Shut Down
+2. Hold mac+ R during boot to enter recovery mode
+3. Open a terminal
+4. type spctl kext-consent disable and press enter
+5. Reboot
+6. It worked
+
+ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)" < /dev/null 2> /dev/null ; brew install caskroom/cask/brew-cask 2> /dev/null
+sudo brew cask install silicon-labs-vcp-driver
+
+sduo   sqlite3 /var/db/SystemPolicyConfiguration/KextPolicy
+SELECT * FROM kext_policy;
+/usr/sbin/spctl kext-consent add 52444FG85C
+
+
+
+___________
+
+https://www.silabs.com/community/interface/forum.topic.topic.15.15.html/cp120x_vcp_driverno-G1Bu
+
+I managed to got it working, on Mac OS X High Sierra 10.13.3 MacBook Pro (13-inch, 2016, Two Thunderbolt 3 ports). I was fiddling around with it for quite some time, so I'm not sure if these steps are exactly what fixed it, but give it a try and please do report back.
+1. First of all, I have downloaded the latest official driver (V5) from silabs.com, mounted the .dmg, run the installation as usual. 
+2. I believe I have restarted my computer, just to make sure, I'm not into kernel extension loading mumbo jumbo. Let the OS do it.
+3. Went there to check to make sure the kext is in place at /Library/Extensions/SiLabsUSBDriver.kext/ (based on the uninstall script came with the installer this is pretty much that is being peresent on the system after the installation. (I'm not sure though someone please confirm)
+4. Now I tried to plug in my device (it's a ESP8266/NodeMCU with the serial chip on it) and I'm not sure if the System Notification bumped in my face but I'm sure that I navigated somehow to System Preferences / Security and Privacy and allowed the extension there. (I guess that's the point where the OS stores your decision in a DB somewhere).
+5. The next thing I did is opened the terminal and issued sqlite3  /var/db/SystemPolicyConfiguration/KextPolicy this command will drop you to a CLI DB tool, where you can issue SQL commands.
+6. Issue SELECT * FROM kext_policy; at the sqlite3 prompt. (note the ; at the end of the line)
+7. Search for the SiaLabs driver line, and look for it's ID (mine is 52444FG85C) and take a note of it on paper.
+8. Now restart your computer in recovery mode (press CMD+R while booting up). The boot will take a bit more time than normal boot so be patient.
+9. While in recovery, open a Terminal window (from the top menu bar, it's there somewhere) and issue the following command:   /usr/sbin/spctl  kext-consent  add  52444FG85C   (replace it with your ID if it's different).
+10. Reboot your computer.
+11. Plug in your CP120x device via USB and take a look around /dev/cu.SLAB_USBtoUART or /dev/tty.SLAB_USBtoUART
+ 
+Again, I'm not sure if this is what helped me to fix this, but I guess. Anyway, it does work. But not out-of-the box that's for sure.
+Edit: make sure to try out different USB cables as well. It's like the 5th one worked for me. Just sayin
+
+_____________________
+
+MICROpyhton
+
+sudo pip3 install rshell
+rshell --buffer-size=30 -p /dev/cu.SLAB_USBtoUART
+boards
+repl
+
+>>> import machine
+>>> pin = machine.Pin(2, machine.Pin.OUT)
+>>> pin.on()
+>>> pin.off()
+
+
+https://randomnerdtutorials.com/micropython-gpios-esp32-esp8266/
+
+Yes, DHT, TWI and SPI protocols are supported.
+I wrote several articles using MicroPython here: lemariva.com/micropython .
+A post with sensors (some using with SPI/I2C) is here:  lemariva.com/blog/2018/06/tutorial-getting-started-with-micropython-sensors available.
+
+
+
+
+
+ampy 
+
+  -p, --port PORT  Name of serial port for connected board.  Can
+                   optionally specify with AMPY_PORT environemnt
+                   variable.  [required]
+  -b, --baud BAUD  Baud rate for the serial connection (default
+                   115200).  Can optionally specify with AMPY_BAUD
+                   environment variable.
+  --version        Show the version and exit.
+  --help           Show this message and exit.
+
+Commands:
+  get    Retrieve a file from the board.
+  ls     List contents of a directory on the board.
+  mkdir  Create a directory on the board.
+  put    Put a file or folder and its contents on the...
+  reset  Perform soft reset/reboot of the board.
+  rm     Remove a file from the board.
+  rmdir  Forcefully remove a folder and all its...
+  run    Run a script and print its output.
+
+
+
+
+
+ampy  —port  /dev/cu.SLAB_USBtoUART   ls —help
+
+I can export a variable that wayd:
+$ export  AMPY_PORT=/dev/cu.SLAB_USBtoUART 
+$ampy ls
+/boot.py
+
+
+
+
+￼
+
+
+
+https://github.com/pycampers/ampy
+
+
+$screen /dev/cu.SLAB_USBtoUART  115200
+
+print("hello sam")
+hello sam
+>>> import machine
+>>> pin=machine.P
+PIN_WAKE        PWM             PWRON_RESET     Pin
+>>>> pin=machine.Pin(2, machine.Pin.O
+OPEN_DRAIN      OUT
+>>> pin=machine.Pin(2, machine.Pin.OUT)
+>>> pin.on()
+>>> pin.off()
+
+ # OR
+
+
+>>> pin=machine.Pin(2, machine.Pin.OUT)
+>>> pin.value(1)
+>>> print(pin.value())
+1
+>>> pin.off()
+
+
+# get rid of the debugging message 
+>>> import esp
+>>> esp.osdebug(None)
+
+
+
+
+
+//. med amin presentation :   the security will be my conserne in future update of the project 
+
+ADC. converter 
+
+
+
+from machine import  Pin , ADC
+import time
+
+
+while True:
+    adc=ADC(Pin(36))
+    value=adc.read()
+    Pin(2, Pin.OUT).on()
+    time.sleep(1)
+    Pin(2, Pin.OUT).off()
+    print(value)
